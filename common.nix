@@ -1,8 +1,6 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
+{ config, lib, pkgs, ... }:
 
-{ config, pkgs, ... }:
+with lib;
 
 {
 
@@ -31,7 +29,7 @@
       let mkTmpDir = n: u: "d ${u.home}/tmp 0700 ${n} ${u.group} 7d";
       in mapAttrsToList mkTmpDir (filterAttrs (_: u: u.isNormalUser) config.users.extraUsers)
     );
-    
+
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
