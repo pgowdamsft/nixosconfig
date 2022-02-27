@@ -5,10 +5,6 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -20,6 +16,22 @@
   # Set your time zone.
   time.timeZone = "America/New_York";
 
+  # Only keep the last 500MiB of systemd journal.
+  services.journald.extraConfig = "SystemMaxUse=500M";
+
+  # Collect nix store garbage and optimise daily.
+  nix.gc.automatic = true;
+  nix.gc.options = "--delete-older-than 30d";
+  nix.optimise.automatic = true;
+
+  # Clear out /tmp after a fortnight and give all normal users a ~/tmp
+  # cleaned out weekly.
+  systemd.tmpfiles.rules = [ "d /tmp 1777 root root 14d" ] ++
+    (
+      let mkTmpDir = n: u: "d ${u.home}/tmp 0700 ${n} ${u.group} 7d";
+      in mapAttrsToList mkTmpDir (filterAttrs (_: u: u.isNormalUser) config.users.extraUsers)
+    );
+    
   # The global useDHCP flag is deprecated, therefore explicitly set to false here.
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
